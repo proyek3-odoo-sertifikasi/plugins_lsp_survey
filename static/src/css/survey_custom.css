@@ -1,0 +1,107 @@
+/* Custom Styles for LSP Survey to Match Portal Theme */
+
+body {
+    background-color: #f3f4f6 !important;
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Page titles and headers */
+.o_survey_form h1, 
+.o_survey_form h2, 
+.o_survey_form h3,
+.o_survey_title {
+    color: #1e3a8a !important;
+    font-weight: 700 !important;
+}
+
+.o_survey_form h2 {
+    font-size: 1.8rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+/* Question texts */
+.o_survey_question_title {
+    color: #374151 !important;
+    font-weight: 600 !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Choice Buttons / Options */
+.o_survey_choice_btn {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 12px 20px !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.2s ease-in-out !important;
+    color: #4b5563 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.o_survey_choice_btn:hover {
+    border-color: #3b82f6 !important;
+    background-color: rgba(59, 130, 246, 0.04) !important;
+    color: #1d4ed8 !important;
+}
+
+/* Selected Choice */
+.o_survey_choice_btn.o_survey_selected,
+.o_survey_choice_btn.active {
+    border-color: #1d4ed8 !important;
+    background-color: rgba(29, 78, 216, 0.08) !important;
+    color: #1d4ed8 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15) !important;
+}
+
+/* Custom styles for the radio circle */
+.o_survey_choice_btn input[type="radio"],
+.o_survey_choice_btn input[type="checkbox"] {
+    accent-color: #1d4ed8 !important;
+}
+
+/* Navigation & Action Buttons */
+.o_survey_form button.btn-primary,
+.o_survey_form .btn-primary,
+.o_survey_form button[type="submit"] {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    color: #ffffff !important;
+    padding: 10px 24px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: 0 2px 4px 0 rgba(29, 78, 216, 0.1) !important;
+}
+
+.o_survey_form button.btn-primary:hover,
+.o_survey_form .btn-primary:hover,
+.o_survey_form button[type="submit"]:hover {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+    box-shadow: 0 4px 6px 0 rgba(30, 64, 175, 0.15) !important;
+}
+
+/* Progress bar inside survey */
+.o_survey_progress {
+    height: 6px !important;
+    border-radius: 3px !important;
+}
+
+.o_survey_progress .progress-bar {
+    background-color: #1d4ed8 !important;
+}
+
+/* Card container for questions */
+.o_survey_question_wrapper {
+    background: #ffffff !important;
+    padding: 24px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+    margin-bottom: 24px !important;
+    border: 1px solid #f3f4f6 !important;
+}

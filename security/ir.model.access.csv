@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_lsp_survey_question_asesor,lsp.survey.question.asesor,survey.model_survey_question,plugins_manajement_asesor.group_asesor,1,1,1,0
+access_lsp_survey_question_admin,lsp.survey.question.admin,survey.model_survey_question,plugins_manajement_asesor.group_admin_lsp,1,1,0,1
+access_lsp_survey_question_portal,lsp.survey.question.portal,survey.model_survey_question,base.group_portal,1,0,0,0
+access_lsp_survey_question_user,lsp.survey.question.user,survey.model_survey_question,base.group_user,1,0,0,0
+access_lsp_survey_question_answer_asesor,lsp.survey.question.answer.asesor,survey.model_survey_question_answer,plugins_manajement_asesor.group_asesor,1,1,1,0
+access_lsp_survey_question_answer_admin,lsp.survey.question.answer.admin,survey.model_survey_question_answer,plugins_manajement_asesor.group_admin_lsp,1,1,0,1
+access_lsp_survey_question_answer_portal,lsp.survey.question.answer.portal,survey.model_survey_question_answer,base.group_portal,1,0,0,0
+access_lsp_survey_question_answer_user,lsp.survey.question.answer.user,survey.model_survey_question_answer,base.group_user,1,0,0,0

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- ============================================================
+             Form view (question & section): LSP Workflow header
+             ============================================================ -->
+        <record id="survey_question_form_inherit_lsp_workflow" model="ir.ui.view">
+            <field name="name">survey.question.form.inherit.lsp.workflow</field>
+            <field name="model">survey.question</field>
+            <field name="inherit_id" ref="survey.survey_question_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet" position="before">
+                    <header>
+                        <button name="action_submit" type="object" string="Ajukan Validasi"
+                                class="btn-primary"
+                                invisible="state not in ['draft', 'revise'] or not can_submit"/>
+                        <button name="action_approve" type="object" string="Setujui (Active)"
+                                class="btn-primary"
+                                invisible="not can_approve or state == 'active'"/>
+                        <button name="action_revise" type="object" string="Minta Revisi"
+                                invisible="state != 'waiting' or not can_approve"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,waiting,revise,active"/>
+                    </header>
+                </xpath>
+
+                <xpath expr="//field[@name='title']" position="after">
+                    <!-- Kode Unit: hanya tampil pada section (is_page=True) -->
+                    <field name="unit_code" string="Kode Unit"
+                           placeholder="Contoh: TIK.PR01.001.01"
+                           invisible="not is_page"/>
+                    <field name="lsp_question_type" string="Tipe Soal LSP"
+                           invisible="is_page"/>
+                    <field name="asesor_id" readonly="1"/>
+                    <field name="catatan_admin" string="Catatan Admin"
+                           invisible="state != 'revise' and not catatan_admin"/>
+                    <field name="can_submit" invisible="1"/>
+                    <field name="can_approve" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+ 
+        <!-- ============================================================
+             List/Tree view: tambah kolom Kode Unit dan Status
+             ============================================================ -->
+        <record id="survey_question_tree_inherit_lsp_state" model="ir.ui.view">
+            <field name="name">survey.question.tree.inherit.lsp.state</field>
+            <field name="model">survey.question</field>
+            <field name="inherit_id" ref="survey.survey_question_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='title']" position="after">
+                    <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
+                    <field name="lsp_question_type" string="Tipe Soal LSP" optional="show" invisible="is_page"/>
+                    <field name="state" string="Status"/>
+                </xpath>
+            </field>
+        </record>
+ 
+        <!-- ============================================================
+             Survey form: tampilkan Kode Unit &amp; Status di inline list soal
+             ============================================================ -->
+        <record id="survey_survey_view_form_inherit_lsp_question_columns" model="ir.ui.view">
+            <field name="name">survey.survey.form.inherit.lsp.question.columns</field>
+            <field name="model">survey.survey</field>
+            <field name="inherit_id" ref="survey.survey_survey_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='question_and_page_ids']/list/field[@name='title']" position="after">
+                    <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
+                    <field name="lsp_question_type" string="Tipe Soal LSP" optional="show" invisible="is_page"/>
+                    <field name="state" string="Status" optional="show"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

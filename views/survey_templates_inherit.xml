@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--
+            Tambahkan kode unit kompetensi di bawah judul section pada halaman survey.
+
+            Strategi: gunakan SATU override yang menarget kedua h2 sekaligus dengan
+            xpath berdasarkan atribut t-field yang pasti ada, tanpa tergantung class dinamis.
+        -->
+        <template id="survey_fill_form_unit_code" inherit_id="survey.survey_fill_form_in_progress">
+
+            <!-- Target h2 pertama (layout one_page, di dalam js_section_wrapper) -->
+            <xpath expr="(//h2[@t-field='page.title'])[1]" position="after">
+                <p t-if="page.unit_code" class="text-muted small mb-2" style="margin-top:-8px;">
+                    <strong>Kode Unit: </strong><t t-esc="page.unit_code"/>
+                </p>
+            </xpath>
+
+            <!-- Target h2 kedua (layout page_per_section) -->
+            <xpath expr="(//h2[@t-field='page.title'])[2]" position="after">
+                <p t-if="page.unit_code" class="text-muted small mb-2" style="margin-top:-8px;">
+                    <strong>Kode Unit: </strong><t t-esc="page.unit_code"/>
+                </p>
+            </xpath>
+
+        </template>
+
+        <!-- Customize Survey Done Page -->
+        <template id="survey_fill_form_done_inherit_lsp" inherit_id="survey.survey_fill_form_done">
+            <xpath expr="//h1[hasclass('fs-2')]" position="replace">
+                <h1 class="fs-2 text-primary fw-bold mt-3" style="color: #1e3a8a !important;">
+                    Ujian Selesai Dikerjakan
+                </h1>
+            </xpath>
+            <xpath expr="//div[hasclass('col')]/t[1]" position="replace">
+                <div class="alert alert-info border-0 rounded-lg p-3 my-3" style="background-color: rgba(59, 130, 246, 0.1); color: #1e3a8a; border-radius: 8px;">
+                    <i class="fa fa-info-circle me-2"></i>
+                    Jawaban Anda telah berhasil disimpan. Hasil evaluasi final (termasuk penilaian Esai dan Praktikum) akan diproses oleh Asesor LSP. Silakan klik tombol di bawah untuk memantau status Anda.
+                </div>
+            </xpath>
+            <xpath expr="//div[hasclass('d-flex', 'gap-3', 'mt-3')]" position="replace">
+                <div class="d-flex gap-3 mt-4">
+                    <a role="button" class="btn btn-primary btn-lg px-4 rounded-pill fw-semibold shadow-sm" href="/portal/hasil" style="background-color: #1d4ed8 !important; border-color: #1d4ed8 !important;">
+                        Lihat Hasil Sertifikasi
+                    </a>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>
