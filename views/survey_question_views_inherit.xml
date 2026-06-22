@@ -2,13 +2,14 @@
 <odoo>
     <data>
         <!-- ============================================================
-             Form view (question & section): LSP Workflow header
+             Form view (question and section): LSP Workflow header + Tipe Soal
              ============================================================ -->
         <record id="survey_question_form_inherit_lsp_workflow" model="ir.ui.view">
             <field name="name">survey.question.form.inherit.lsp.workflow</field>
             <field name="model">survey.question</field>
             <field name="inherit_id" ref="survey.survey_question_form"/>
             <field name="arch" type="xml">
+                <!-- Workflow header buttons -->
                 <xpath expr="//sheet" position="before">
                     <header>
                         <button name="action_submit" type="object" string="Ajukan Validasi"
@@ -24,12 +25,17 @@
                     </header>
                 </xpath>
 
+                <!-- Sembunyikan question_type native (sudah diwakili lsp_question_type) -->
+                <xpath expr="//field[@name='question_type']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- Tambah field LSP setelah title -->
                 <xpath expr="//field[@name='title']" position="after">
-                    <!-- Kode Unit: hanya tampil pada section (is_page=True) -->
                     <field name="unit_code" string="Kode Unit"
                            placeholder="Contoh: TIK.PR01.001.01"
                            invisible="not is_page"/>
-                    <field name="lsp_question_type" string="Tipe Soal LSP"
+                    <field name="lsp_question_type" string="Tipe Soal"
                            invisible="is_page"/>
                     <field name="asesor_id" readonly="1"/>
                     <field name="catatan_admin" string="Catatan Admin"
@@ -39,9 +45,9 @@
                 </xpath>
             </field>
         </record>
- 
+
         <!-- ============================================================
-             List/Tree view: tambah kolom Kode Unit dan Status
+             List/Tree view standalone: Kode Unit + Tipe Soal + Status
              ============================================================ -->
         <record id="survey_question_tree_inherit_lsp_state" model="ir.ui.view">
             <field name="name">survey.question.tree.inherit.lsp.state</field>
@@ -50,23 +56,30 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='title']" position="after">
                     <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
-                    <field name="lsp_question_type" string="Tipe Soal LSP" optional="show" invisible="is_page"/>
+                    <field name="lsp_question_type" string="Tipe Soal" optional="show" invisible="is_page"/>
                     <field name="state" string="Status"/>
                 </xpath>
             </field>
         </record>
- 
+
         <!-- ============================================================
-             Survey form: tampilkan Kode Unit &amp; Status di inline list soal
+             Survey form: inline list soal
+             Sembunyikan kolom Question Type native, tampilkan Tipe Soal LSP
              ============================================================ -->
         <record id="survey_survey_view_form_inherit_lsp_question_columns" model="ir.ui.view">
             <field name="name">survey.survey.form.inherit.lsp.question.columns</field>
             <field name="model">survey.survey</field>
             <field name="inherit_id" ref="survey.survey_survey_view_form"/>
             <field name="arch" type="xml">
+                <!-- Sembunyikan kolom question_type native di inline list -->
+                <xpath expr="//field[@name='question_and_page_ids']/list/field[@name='question_type']" position="attributes">
+                    <attribute name="column_invisible">1</attribute>
+                </xpath>
+
+                <!-- Tambah kolom LSP di inline list -->
                 <xpath expr="//field[@name='question_and_page_ids']/list/field[@name='title']" position="after">
                     <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
-                    <field name="lsp_question_type" string="Tipe Soal LSP" optional="show" invisible="is_page"/>
+                    <field name="lsp_question_type" string="Tipe Soal" optional="show" invisible="is_page"/>
                     <field name="state" string="Status" optional="show"/>
                 </xpath>
             </field>

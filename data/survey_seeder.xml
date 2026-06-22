@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Survey: buat sekali saja (noupdate=1) -->
+    <data noupdate="1">
+        <record id="survey_rpl" model="survey.survey">
+            <field name="title">Skema Sertifikasi Rekayasa Perangkat Lunak (RPL)</field>
+            <field name="questions_layout">page_per_section</field>
+            <field name="access_mode">public</field>
+            <field name="questions_selection">random</field>
+            <field name="scoring_type">scoring_with_answers</field>
+        </record>
+
+        <record id="survey_bdp" model="survey.survey">
+            <field name="title">Skema Sertifikasi Bisnis Daring dan Pemasaran (BDP)</field>
+            <field name="questions_layout">page_per_section</field>
+            <field name="access_mode">public</field>
+            <field name="questions_selection">random</field>
+            <field name="scoring_type">scoring_with_answers</field>
+        </record>
+
+        <record id="survey_tbsm" model="survey.survey">
+            <field name="title">Skema Sertifikasi Teknik dan Bisnis Sepeda Motor (TBSM)</field>
+            <field name="questions_layout">page_per_section</field>
+            <field name="access_mode">public</field>
+            <field name="questions_selection">random</field>
+            <field name="scoring_type">scoring_with_answers</field>
+        </record>
+    </data>
+
+    <!-- Link survey ke skema: selalu update (noupdate=0) -->
+    <data noupdate="0">
+        <record id="plugins_manajement_asesor.skema_rpl" model="lsp.skema.sertifikasi">
+            <field name="survey_id" ref="survey_rpl"/>
+        </record>
+
+        <record id="plugins_manajement_asesor.skema_bdp" model="lsp.skema.sertifikasi">
+            <field name="survey_id" ref="survey_bdp"/>
+        </record>
+
+        <record id="plugins_manajement_asesor.skema_tbsm" model="lsp.skema.sertifikasi">
+            <field name="survey_id" ref="survey_tbsm"/>
+        </record>
+    </data>
+
+</odoo>

@@ -1,5 +1,16 @@
+import logging
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
+
+# Peta dari lsp_question_type ke question_type Odoo native
+LSP_TYPE_TO_ODOO = {
+    'pg': 'simple_choice',
+    'essay': 'text_box',
+    'praktikum': 'text_box',
+    'observasi': 'char_box',
+}
 
 
 class SurveyQuestion(models.Model):
@@ -9,11 +20,17 @@ class SurveyQuestion(models.Model):
     # - title  (bawaan Odoo) = Nama Unit Kompetensi
     # - unit_code (tambahan) = Kode Unit Kompetensi
     unit_code = fields.Char(string="Kode Unit", help="Kode unit kompetensi, contoh: TIK.PR01.001.01")
+
+    # lsp_question_type: selector tipe soal LSP (menggantikan question_type native di UI)
+    # pg       → simple_choice (Pilihan Ganda, hanya 1 jawaban benar, skor otomatis 100)
+    # essay    → text_box      (Esai, Multiple Lines Text Box)
+    # praktikum→ text_box      (Praktikum, Multiple Lines Text Box, peserta isi "-")
     lsp_question_type = fields.Selection([
         ('pg', 'Pilihan Ganda'),
         ('essay', 'Esai'),
-        ('praktikum', 'Praktikum')
-    ], string="Tipe Soal LSP", default='pg', required=True)
+        ('praktikum', 'Praktikum'),
+        ('observasi', 'Observasi'),
+    ], string="Tipe Soal", default='pg', required=True)
 
     asesor_id = fields.Many2one(
         "res.users",
@@ -44,15 +61,42 @@ class SurveyQuestion(models.Model):
             question.can_submit = is_asesor
             question.can_approve = is_admin
 
+    # ------------------------------------------------------------------
+    # Onchange: sinkronisasi lsp_question_type → question_type Odoo
+    # ------------------------------------------------------------------
+    @api.onchange('lsp_question_type')
+    def _onchange_lsp_question_type(self):
+        """Sinkronkan lsp_question_type ke question_type Odoo dan terapkan aturan otomatis."""
+        if self.is_page:
+            return
+        odoo_type = LSP_TYPE_TO_ODOO.get(self.lsp_question_type, 'simple_choice')
+        self.question_type = odoo_type
+        # Semua soal wajib dijawab
+        self.constr_mandatory = True
+        self.constr_error_msg = _("Jawaban wajib diisi.")
+
+    # ------------------------------------------------------------------
+    # Constraint: soal non-section wajib berada di bawah sebuah Section
+    # ------------------------------------------------------------------
+    @api.constrains('page_id', 'is_page')
+    def _check_question_must_have_section(self):
+        """Setiap soal (bukan section) WAJIB berada di bawah sebuah Unit Kompetensi (Section/Page)."""
+        # Skip check jika dalam proses LSP resequence
+        if self.env.context.get('lsp_skip_section_check'):
+            return
+        for question in self:
+            if not question.is_page and not question.page_id:
+                raise ValidationError(_(
+                    "Setiap soal harus dimasukkan ke dalam sebuah Unit Kompetensi (Section). "
+                    "Silakan buat atau pilih Section terlebih dahulu sebelum menambahkan soal."
+                ))
+
+    # ------------------------------------------------------------------
+    # Create: paksa question_type + mandatory + skor PG otomatis
+    # ------------------------------------------------------------------
     @api.model_create_multi
     def create(self, vals_list):
-        """Hanya LSP Asesor yang boleh membuat soal atau section baru.
-
-        LSP Admin dapat membaca, meng-approve, dan merevisi soal,
-        tetapi TIDAK dapat membuat soal baru — itu adalah hak eksklusif Asesor.
-        Context flag ``lsp_allow_non_asesor_create`` dapat dipakai oleh
-        kode internal (mis. impor data) untuk melewati pembatasan ini.
-        """
+        """Hanya LSP Asesor yang boleh membuat soal atau section baru."""
         if not self.env.context.get("lsp_allow_non_asesor_create") and not self.env.user.has_group(
             "plugins_manajement_asesor.group_asesor"
         ):
@@ -62,8 +106,30 @@ class SurveyQuestion(models.Model):
                     "LSP Admin hanya dapat menyetujui atau merevisi soal yang sudah dibuat."
                 )
             )
+        for vals in vals_list:
+            if not vals.get('is_page'):
+                lsp_type = vals.get('lsp_question_type', 'pg')
+                # Paksa question_type sesuai mapping
+                vals.setdefault('question_type', LSP_TYPE_TO_ODOO.get(lsp_type, 'simple_choice'))
+                # Semua soal wajib dijawab
+                vals.setdefault('constr_mandatory', True)
+                vals.setdefault('constr_error_msg', _("Jawaban wajib diisi."))
+
         return super().create(vals_list)
 
+    # ------------------------------------------------------------------
+    # Write: jaga sinkronisasi question_type saat lsp_question_type berubah
+    # ------------------------------------------------------------------
+    def write(self, vals):
+        if 'lsp_question_type' in vals and not vals.get('is_page'):
+            lsp_type = vals['lsp_question_type']
+            if 'question_type' not in vals:
+                vals['question_type'] = LSP_TYPE_TO_ODOO.get(lsp_type, 'simple_choice')
+        return super().write(vals)
+
+    # ------------------------------------------------------------------
+    # Workflow actions
+    # ------------------------------------------------------------------
     def action_submit(self):
         if not self.env.user.has_group("plugins_manajement_asesor.group_asesor"):
             raise AccessError(_("Hanya LSP Asesor yang bisa mengajukan validasi soal."))
@@ -73,11 +139,7 @@ class SurveyQuestion(models.Model):
         return True
 
     def action_approve(self):
-        """Setujui soal/section → ubah status menjadi Active.
-
-        LSP Admin dapat menyetujui soal dari status Draft, Waiting, maupun Revise.
-        Soal yang sudah Active tidak perlu disetujui ulang.
-        """
+        """Setujui soal/section → ubah status menjadi Active."""
         if not self.env.user.has_group("plugins_manajement_asesor.group_admin_lsp"):
             raise AccessError(_("Hanya LSP Admin yang bisa menyetujui soal."))
         already_active = self.filtered(lambda q: q.state == "active")
@@ -98,21 +160,65 @@ class SurveyQuestion(models.Model):
         return True
 
 
+class SurveyQuestionAnswer(models.Model):
+    _inherit = "survey.question.answer"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Saat opsi jawaban dibuat untuk soal PG (simple_choice),
+        pastikan hanya 1 opsi yang bisa benar dan skor otomatis 100."""
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.question_id and rec.question_id.question_type == 'simple_choice':
+                if rec.is_correct:
+                    # Set skor ke 100
+                    rec.answer_score = 100
+                    # Pastikan opsi lain tidak benar
+                    other_correct = rec.question_id.suggested_answer_ids.filtered(
+                        lambda a: a.id != rec.id and a.is_correct
+                    )
+                    if other_correct:
+                        other_correct.write({'is_correct': False, 'answer_score': 0})
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        for rec in self:
+            if rec.question_id and rec.question_id.question_type == 'simple_choice':
+                if vals.get('is_correct'):
+                    # Auto set skor 100
+                    if rec.answer_score != 100:
+                        super(SurveyQuestionAnswer, rec).write({'answer_score': 100})
+                    # Hapus flag benar dari opsi lain
+                    other_correct = rec.question_id.suggested_answer_ids.filtered(
+                        lambda a: a.id != rec.id and a.is_correct
+                    )
+                    if other_correct:
+                        other_correct.write({'is_correct': False, 'answer_score': 0})
+        return result
+
+
 class SurveySurvey(models.Model):
     _inherit = "survey.survey"
 
+    # -------------------------------------------------------------------------
+    # Default Values: Optimasi UX agar Asesor/Admin tidak perlu konfigurasi manual
+    # -------------------------------------------------------------------------
+    questions_layout = fields.Selection(
+        default='page_per_section',
+    )
+    access_mode = fields.Selection(
+        default='public',
+    )
+    questions_selection = fields.Selection(
+        default='random',
+    )
+    scoring_type = fields.Selection(
+        default='scoring_with_answers',
+    )
+
     def _lsp_filter_active_questions(self, questions):
-        """Keep only approved questions and their parent sections for the participant-facing flow.
-
-        Rules:
-        - A SECTION (is_page=True) is shown if it has >=1 active question inside it.
-          The section itself does NOT need to be 'active'.
-        - A QUESTION (is_page=False) is shown only if state == 'active'.
-
-        Important: when questions_layout == 'page_per_section', Odoo passes only the
-        section records to this method. In that case we must look up the active
-        questions from the survey's full question_and_page_ids, not from the passed list.
-        """
+        """Keep only approved questions and their parent sections for the participant-facing flow."""
         if self.env.context.get("lsp_include_inactive_questions"):
             return questions
 
@@ -120,15 +226,11 @@ class SurveySurvey(models.Model):
         has_non_pages = any(not q.is_page for q in questions)
 
         if has_pages and not has_non_pages:
-            # page_per_section layout: only sections were passed.
-            # Determine which sections have at least one active question
-            # by looking at the full survey question list.
             all_non_page = self.question_and_page_ids.filtered(lambda q: not q.is_page)
             active_non_page = all_non_page.filtered(lambda q: q.state == "active")
             sections_with_active_q = active_non_page.mapped("page_id")
             return questions.filtered(lambda p: p in sections_with_active_q)
 
-        # Mixed or questions-only input (page_per_question / one_page layout)
         active_questions = questions.filtered(lambda q: not q.is_page and q.state == "active")
         sections_with_active_q = active_questions.mapped("page_id")
 
@@ -156,12 +258,7 @@ class SurveySurvey(models.Model):
         return self._lsp_filter_active_questions(questions), page_or_question_id
 
     def _get_next_page_or_question(self, user_input, page_or_question_id, go_back=False):
-        """Override untuk mencegah ValueError saat navigasi survey.
-
-        Jika survey tidak memiliki soal/section yang aktif, atau jika ID soal yang diminta
-        tidak ada dalam daftar soal aktif (misal karena berstatus draft/waiting/revise),
-        metode ini akan mengembalikan recordset kosong secara aman daripada menyebabkan crash.
-        """
+        """Override untuk mencegah ValueError saat navigasi survey."""
         pages_or_questions = self._get_pages_or_questions(user_input)
         if not pages_or_questions:
             return self.env["survey.question"]
@@ -175,18 +272,13 @@ class SurveySurvey(models.Model):
 
     @api.depends("question_and_page_ids", "question_and_page_ids.state")
     def _compute_page_and_question_ids(self):
-        """Override to expose only sections-with-active-questions and active questions.
-
-        This makes survey validity checks (survey_void detection) and the progression
-        bar work correctly with the LSP active-question filter.
-        """
+        """Override to expose only sections-with-active-questions and active questions."""
         super()._compute_page_and_question_ids()
 
         if self.env.context.get("lsp_include_inactive_questions"):
             return
 
         for survey in self:
-            # Active (non-page) questions whose parent section also has >=1 active question
             all_q = survey.question_and_page_ids.filtered(lambda q: not q.is_page)
             active_q = all_q.filtered(lambda q: q.state == "active")
             sections_with_active_q = active_q.mapped("page_id")
@@ -198,5 +290,3 @@ class SurveySurvey(models.Model):
                 lambda q: not q.page_id or q.page_id in sections_with_active_q
             )
             survey.question_count = len(survey.question_ids)
-
-
