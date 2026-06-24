@@ -30,14 +30,19 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
 
-                <!-- Tambah field LSP setelah title -->
-                <xpath expr="//field[@name='title']" position="after">
+                <!-- Tambah field LSP setelah question_type agar masuk dalam group form -->
+                <xpath expr="//field[@name='question_type']" position="after">
                     <field name="unit_code" string="Kode Unit"
                            placeholder="Contoh: TIK.PR01.001.01"
                            invisible="not is_page"/>
                     <field name="lsp_question_type" string="Tipe Soal"
                            invisible="is_page"/>
-                    <field name="asesor_id" readonly="1"/>
+                    <field name="asesor_id" readonly="1" invisible="is_page"/>
+                    <field name="tanggal_dibuat" invisible="is_page"/>
+                    <field name="expiry_date" invisible="1"/>
+                    <field name="days_until_expiry" invisible="1"/>
+                    <field name="is_expired" invisible="1"/>
+                    <field name="expiry_info" invisible="is_page" decoration-danger="is_expired"/>
                     <field name="catatan_admin" string="Catatan Admin"
                            invisible="state != 'revise' and not catatan_admin"/>
                     <field name="can_submit" invisible="1"/>
@@ -57,7 +62,10 @@
                 <xpath expr="//field[@name='title']" position="after">
                     <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
                     <field name="lsp_question_type" string="Tipe Soal" optional="show" invisible="is_page"/>
-                    <field name="state" string="Status"/>
+                    <field name="tanggal_dibuat" optional="hide" invisible="is_page"/>
+                    <field name="is_expired" column_invisible="True"/>
+                    <field name="expiry_info" string="Masa Berlaku" optional="show" invisible="is_page" decoration-danger="is_expired"/>
+                    <field name="state" string="Status" decoration-danger="is_expired and not is_page"/>
                 </xpath>
             </field>
         </record>
@@ -80,7 +88,10 @@
                 <xpath expr="//field[@name='question_and_page_ids']/list/field[@name='title']" position="after">
                     <field name="unit_code" string="Kode Unit" optional="show" invisible="not is_page"/>
                     <field name="lsp_question_type" string="Tipe Soal" optional="show" invisible="is_page"/>
-                    <field name="state" string="Status" optional="show"/>
+                    <field name="tanggal_dibuat" optional="hide" invisible="is_page"/>
+                    <field name="is_expired" column_invisible="True"/>
+                    <field name="expiry_info" string="Masa Berlaku" optional="show" invisible="is_page" decoration-danger="is_expired"/>
+                    <field name="state" string="Status" optional="show" decoration-danger="is_expired and not is_page"/>
                 </xpath>
             </field>
         </record>

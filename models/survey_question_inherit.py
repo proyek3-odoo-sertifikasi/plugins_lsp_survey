@@ -53,6 +53,55 @@ class SurveyQuestion(models.Model):
     can_submit = fields.Boolean(compute="_compute_lsp_permissions")
     can_approve = fields.Boolean(compute="_compute_lsp_permissions")
 
+    tanggal_dibuat = fields.Date(
+        string='Tanggal Dibuat',
+        default=fields.Date.context_today,
+        help='Tanggal soal ini dibuat di dalam bank soal.'
+    )
+    expiry_date = fields.Date(
+        string='Berlaku Sampai',
+        compute='_compute_expiry_info',
+        store=True,
+    )
+    days_until_expiry = fields.Integer(
+        string='Sisa Hari',
+        compute='_compute_expiry_info',
+        store=False,
+    )
+    is_expired = fields.Boolean(
+        string='Sudah Kedaluwarsa?',
+        compute='_compute_expiry_info',
+        store=True,
+    )
+    expiry_info = fields.Char(
+        string='Info Masa Berlaku',
+        compute='_compute_expiry_info',
+        store=False,
+    )
+
+    @api.depends('tanggal_dibuat')
+    def _compute_expiry_info(self):
+        from dateutil.relativedelta import relativedelta
+        today = fields.Date.context_today(self)
+        for question in self:
+            if question.tanggal_dibuat:
+                # Berlaku selama 2 tahun
+                expiry = question.tanggal_dibuat + relativedelta(years=2)
+                question.expiry_date = expiry
+                question.is_expired = expiry < today
+                question.days_until_expiry = (expiry - today).days
+                
+                # Format text yang informatif
+                if question.is_expired:
+                    question.expiry_info = f"Kedaluwarsa sejak {expiry.strftime('%d %b %Y')} ({abs(question.days_until_expiry)} hari yang lalu)"
+                else:
+                    question.expiry_info = f"Berlaku s/d {expiry.strftime('%d %b %Y')} (Sisa {question.days_until_expiry} hari)"
+            else:
+                question.expiry_date = False
+                question.is_expired = False
+                question.days_until_expiry = 0
+                question.expiry_info = "Tidak ada batas waktu"
+
     @api.depends_context("uid")
     def _compute_lsp_permissions(self):
         is_admin = self.env.user.has_group("plugins_manajement_asesor.group_admin_lsp")

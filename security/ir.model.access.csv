@@ -7,3 +7,9 @@ access_lsp_survey_question_answer_asesor,lsp.survey.question.answer.asesor,surve
 access_lsp_survey_question_answer_admin,lsp.survey.question.answer.admin,survey.model_survey_question_answer,plugins_manajement_asesor.group_admin_lsp,1,1,0,1
 access_lsp_survey_question_answer_portal,lsp.survey.question.answer.portal,survey.model_survey_question_answer,base.group_portal,1,0,0,0
 access_lsp_survey_question_answer_user,lsp.survey.question.answer.user,survey.model_survey_question_answer,base.group_user,1,0,0,0
+access_lsp_survey_survey_asesor,lsp.survey.survey.asesor,survey.model_survey_survey,plugins_manajement_asesor.group_asesor,1,1,1,0
+access_lsp_survey_survey_admin,lsp.survey.survey.admin,survey.model_survey_survey,plugins_manajement_asesor.group_admin_lsp,1,1,0,0
+access_lsp_survey_user_input_asesor,lsp.survey.user_input.asesor,survey.model_survey_user_input,plugins_manajement_asesor.group_asesor,1,1,0,0
+access_lsp_survey_user_input_admin,lsp.survey.user_input.admin,survey.model_survey_user_input,plugins_manajement_asesor.group_admin_lsp,1,1,0,0
+access_lsp_survey_user_input_line_asesor,lsp.survey.user_input_line.asesor,survey.model_survey_user_input_line,plugins_manajement_asesor.group_asesor,1,1,0,0
+access_lsp_survey_user_input_line_admin,lsp.survey.user_input_line.admin,survey.model_survey_user_input_line,plugins_manajement_asesor.group_admin_lsp,1,1,0,0
