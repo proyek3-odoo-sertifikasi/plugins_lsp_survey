@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==========================================================
+         Record Rules: Survey Question (Bank Soal)
+         - Asesor hanya bisa membuat & membaca soal di survey
+           yang terhubung dengan skema sertifikasi mereka.
+         - Admin LSP bisa membaca semua soal dari semua skema,
+           tetapi tidak bisa membuat soal baru.
+         ========================================================== -->
+
+    <!-- Rule 1: Asesor hanya bisa akses survey.question milik skemanya -->
+    <record id="rule_survey_question_asesor_by_skema" model="ir.rule">
+        <field name="name">Asesor: Hanya Akses Soal Sesuai Skema</field>
+        <field name="model_id" ref="survey.model_survey_question"/>
+        <field name="domain_force">
+            ['|',
+              ('survey_id.skema_sertifikasi_ids.id', '=', user.skema_sertifikasi_id.id),
+              ('survey_id', '=', False)
+            ]
+        </field>
+        <field name="groups" eval="[(4, ref('plugins_manajement_asesor.group_asesor'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Rule 2: Admin LSP bisa baca semua soal dari semua skema -->
+    <record id="rule_survey_question_admin_lsp_all" model="ir.rule">
+        <field name="name">Admin LSP: Baca Semua Soal</field>
+        <field name="model_id" ref="survey.model_survey_question"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('plugins_manajement_asesor.group_admin_lsp'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Rule 3: Asesor hanya bisa akses survey.survey milik skemanya -->
+    <record id="rule_survey_survey_asesor_by_skema" model="ir.rule">
+        <field name="name">Asesor: Hanya Akses Survey Sesuai Skema</field>
+        <field name="model_id" ref="survey.model_survey_survey"/>
+        <field name="domain_force">
+            [('skema_sertifikasi_ids.id', '=', user.skema_sertifikasi_id.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('plugins_manajement_asesor.group_asesor'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>

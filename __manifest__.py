@@ -6,6 +6,7 @@
     "depends": ["base", "survey", "plugins_manajement_asesor"],
     "data": [
         "security/ir.model.access.csv",
+        "security/lsp_survey_rules.xml",
         "data/survey_seeder.xml",
         "views/survey_question_views_inherit.xml",
         "views/survey_templates_inherit.xml",
